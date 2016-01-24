@@ -15,13 +15,13 @@ static const int GPIO_OUTPUT = 1;
 static const int GPIO_LOW = 0;
 static const int GPIO_HIGH = 1;
 
-int gpioExport(int pin);
-int gpioExportAndDirection(int pin, int direction);
-int gpioDirection(int pin, int direction);
-int gpioWrite(int pin, int value);
-int gpioUnexport(int pin);
+int gpioExport(const int pin);
+int gpioExportAndDirection(const int pin, const int direction);
+int gpioDirection(const int pin, const int direction);
+int gpioWrite(const int pin, const int value);
+int gpioUnexport(const int pin);
 void gpioTestMode(char *gpioSysClass);
-void gpioVerbose(bool verbose);
+void gpioVerbose(const bool verbose);
 
 static const int GPIO_PIN_02 = 2;
 static const int GPIO_PIN_03 = 3;

@@ -11,13 +11,16 @@ typedef struct pwm
 
     // Variable parameters
     int cyclesPerSecond;
-    int dutyCycle;
+    float dutyCycle;
+    int lengthOfPulse;
 
     // Set to true to gracefully terminate the thread
     bool terminate;
 
-    // Internal variable, not to be set
+    // Thread Id (Internal variable, not to be set)
     pthread_t threadId;
+
+    // Duty cycle variables (Internal variable, not to be set)
     int microSecondsTotal;
     int microSecondsHigh;
     int microSecondsLow;
@@ -30,6 +33,7 @@ static const float GPIO_PWM_HUNDRED_PERCENT = 100.0f;
 static const int GPIO_PWM_DUTY_CYCLE_HIGH = 100;
 static const int GPIO_PWM_DUTY_CYCLE_LOW = 0;
 
-void *pwmCycleGpioPin(void *parameters);
+void *pwmCycleGpioPin(void *pwmParameters);
+void pwmPulseGpioPin(GPIO_PWM_PARAMETERS *pwmParameters);
 
 #endif // PWM_H_INCLUDED

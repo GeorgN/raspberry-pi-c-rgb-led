@@ -10,19 +10,19 @@ static char *GPIO_SYS_CLASS = "/sys/class/gpio";
 static bool GPIO_VERBOSE = false;
 static const char *DIRECTION_INSTRUCTION[] = { "in", "out" };
 
-static char* gpioSystemFile(const char *systemFile);
-static char* gpioSystemPinFile(int pin, const char *systemFile);
-static int gpioSystemFileWrite(char *systemFile, int bytes, char *buffer);
-static bool isValidGPIOPin(int pin);
-static bool isValidGPIODirection(int direction);
-static bool isValidGPIOValue(int value);
+static char* systemFile(const char *systemFile);
+static char* systemPinFile(const int pin, const char *systemFile);
+static int systemFileWrite(char *systemFile, int bytes, char *buffer);
+static bool isValidGPIOPin(const int pin);
+static bool isValidGPIODirection(const int direction);
+static bool isValidGPIOValue(const int value);
 
 /*
  * Initialises GPIO pin, bash equivalent for pin 17...
  *
  * $ echo "17" > /sys/class/gpio/export
  */
-int gpioExport(int pin)
+int gpioExport(const int pin)
 {
     if (isValidGPIOPin(pin) == false)
         return EXIT_FAILURE;
@@ -30,9 +30,9 @@ int gpioExport(int pin)
     char buffer[3];
     int bytes = snprintf(buffer, 3, "%d", pin);
 
-    char *gpioSysFile = gpioSystemFile(GPIO_EXPORT);
+    char *gpioSysFile = systemFile(GPIO_EXPORT);
 
-    return gpioSystemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(gpioSysFile, bytes, buffer);
 }
 
 /*
@@ -41,7 +41,7 @@ int gpioExport(int pin)
  * $ echo "out" > /sys/class/gpio/gpio17/direction
  * $ echo "in" > /sys/class/gpio/gpio17/direction
  */
-int gpioDirection(int pin, int direction)
+int gpioDirection(const int pin, const int direction)
 {
     if (isValidGPIOPin(pin) == false || isValidGPIODirection(direction) == false)
         return EXIT_FAILURE;
@@ -49,9 +49,9 @@ int gpioDirection(int pin, int direction)
     char buffer[4];
     int bytes = snprintf(buffer, 4, "%s", DIRECTION_INSTRUCTION[direction]);
 
-    char *gpioSysFile = gpioSystemPinFile(pin, GPIO_DIRECTION);
+    char *gpioSysFile = systemPinFile(pin, GPIO_DIRECTION);
 
-    return gpioSystemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(gpioSysFile, bytes, buffer);
 }
 
 /*
@@ -60,7 +60,7 @@ int gpioDirection(int pin, int direction)
  * $ echo "17" > /sys/class/gpio/export
  * $ echo "out" > /sys/class/gpio/gpio17/direction
  */
-int gpioExportAndDirection(int pin, int direction)
+int gpioExportAndDirection(const int pin, const int direction)
 {
     if (gpioExport(pin) != EXIT_SUCCESS)
         return EXIT_FAILURE;
@@ -77,7 +77,7 @@ int gpioExportAndDirection(int pin, int direction)
  * $ echo "1" > /sys/class/gpio/gpio17/value
  * $ echo "0" > /sys/class/gpio/gpio17/value
  */
-int gpioWrite(int pin, int value)
+int gpioWrite(const int pin, const int value)
 {
     if (isValidGPIOPin(pin) == false || isValidGPIOValue(value) == false)
         return EXIT_FAILURE;
@@ -85,9 +85,9 @@ int gpioWrite(int pin, int value)
     char buffer[2];
     int bytes = snprintf(buffer, 2, "%d", value);
 
-    char *gpioSysFile = gpioSystemPinFile(pin, GPIO_VALUE);
+    char *gpioSysFile = systemPinFile(pin, GPIO_VALUE);
 
-    return gpioSystemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(gpioSysFile, bytes, buffer);
 }
 
 /*
@@ -95,7 +95,7 @@ int gpioWrite(int pin, int value)
  *
  * $ echo "17" > /sys/class/gpio/unexport
  */
-int gpioUnexport(int pin)
+int gpioUnexport(const int pin)
 {
     if (isValidGPIOPin(pin) == false)
         return EXIT_FAILURE;
@@ -103,15 +103,31 @@ int gpioUnexport(int pin)
     char buffer[3];
     int bytes = snprintf(buffer, 3, "%d", pin);
 
-    char *gpioSysFile = gpioSystemFile(GPIO_UNEXPORT);
+    char *gpioSysFile = systemFile(GPIO_UNEXPORT);
 
-    return gpioSystemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(gpioSysFile, bytes, buffer);
+}
+
+/*
+ * Change the root system directory (the default is the correct value for use).  Used for unit testing.
+ */
+void gpioTestMode(char *gpioSysClass)
+{
+    GPIO_SYS_CLASS = gpioSysClass;
+}
+
+/*
+ * Set the verbose mode, so will send to standard output.  Used for unit testing and diagnostics.
+ */
+void gpioVerbose(const bool verbose)
+{
+    GPIO_VERBOSE = verbose;
 }
 
 /*
  * Build the path and file name
  */
-char* gpioSystemFile(const char *systemFile)
+static char* systemFile(const char *systemFile)
 {
     char *gpioFile = malloc(sizeof(char) * (strlen(GPIO_SYS_CLASS) + strlen(systemFile) + 1));
     strcat(gpioFile, GPIO_SYS_CLASS);
@@ -122,7 +138,7 @@ char* gpioSystemFile(const char *systemFile)
 /*
  * Build the path (including pin directory) and file name
  */
-char* gpioSystemPinFile(int pin, const char *systemFile)
+static char* systemPinFile(int pin, const char *systemFile)
 {
     char systemDir[8];
     snprintf(systemDir, 8, GPIO_PIN_DIR, pin);
@@ -137,7 +153,7 @@ char* gpioSystemPinFile(int pin, const char *systemFile)
 /*
  * Write to the system file
  */
-int gpioSystemFileWrite(char *gpioSystemFile, int bytes, char *buffer)
+static int systemFileWrite(char *gpioSystemFile, const int bytes, char *buffer)
 {
     if (GPIO_VERBOSE) printf("Writing '%s' to %s\n", buffer, gpioSystemFile);
 
@@ -161,25 +177,9 @@ int gpioSystemFileWrite(char *gpioSystemFile, int bytes, char *buffer)
 }
 
 /*
- * Change the root system directory (the default is the correct value for use).  Used for unit testing.
- */
-void gpioTestMode(char *gpioSysClass)
-{
-    GPIO_SYS_CLASS = gpioSysClass;
-}
-
-/*
- * Set the verbose mode, so will send to standard output.  Used for unit testing and diagnostics.
- */
-void gpioVerbose(bool verbose)
-{
-    GPIO_VERBOSE = verbose;
-}
-
-/*
  * Validate the GPIO pin number
  */
-bool isValidGPIOPin(int pin)
+static bool isValidGPIOPin(const int pin)
 {
     return (pin < GPIO_PIN_02 || pin > GPIO_PIN_27) ? false : true;
 }
@@ -187,7 +187,7 @@ bool isValidGPIOPin(int pin)
 /*
  * Validate the GPIO pin direction
  */
-bool isValidGPIODirection(int direction)
+static bool isValidGPIODirection(const int direction)
 {
     return (direction == GPIO_OUTPUT || direction == GPIO_INPUT) ? true : false;
 }
@@ -195,7 +195,7 @@ bool isValidGPIODirection(int direction)
 /*
  * Validate the GPIO pin value
  */
-bool isValidGPIOValue(int value)
+static bool isValidGPIOValue(const int value)
 {
     return (value == GPIO_HIGH || value == GPIO_LOW) ? true : false;
 }
