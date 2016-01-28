@@ -4,6 +4,8 @@ Another little C program. This time to have a go at software pulse width modulat
 
 The code important to this little project is gpio/pwm.c, gpio/pwm.h and main.c.  This is where all the software pulse width modulation happens to fade and change the colour of the RGB Led.
 
+![rgbLed](https://github.com/mse240966/raspberry-pi-c-rgb-led/blob/master/docs/rgbLed.jpg "RGB Led")
+
 ## Example
 
 ```bash
