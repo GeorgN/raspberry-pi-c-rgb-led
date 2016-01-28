@@ -12,8 +12,8 @@ static const char *DIRECTION_INSTRUCTION[] = { "in", "out" };
 
 static char* systemFile(const char *systemFile);
 static char* systemPinFile(const int pin, const char *systemFile);
-static int systemFileWrite(char *systemFile, int bytes, char *buffer);
-static bool isValidGPIOPin(const int pin);
+static int systemFileWrite(char *gpioSystemFile, int bytes, char *buffer);
+static int systemFileRead(char *gpioSystemFile, int *value);
 static bool isValidGPIODirection(const int direction);
 static bool isValidGPIOValue(const int value);
 
@@ -24,15 +24,13 @@ static bool isValidGPIOValue(const int value);
  */
 int gpioExport(const int pin)
 {
-    if (isValidGPIOPin(pin) == false)
+    if (gpioIsValidPin(pin) == false)
         return EXIT_FAILURE;
 
     char buffer[3];
     int bytes = snprintf(buffer, 3, "%d", pin);
 
-    char *gpioSysFile = systemFile(GPIO_EXPORT);
-
-    return systemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(systemFile(GPIO_EXPORT), bytes, buffer);
 }
 
 /*
@@ -43,15 +41,13 @@ int gpioExport(const int pin)
  */
 int gpioDirection(const int pin, const int direction)
 {
-    if (isValidGPIOPin(pin) == false || isValidGPIODirection(direction) == false)
+    if (gpioIsValidPin(pin) == false || isValidGPIODirection(direction) == false)
         return EXIT_FAILURE;
 
     char buffer[4];
     int bytes = snprintf(buffer, 4, "%s", DIRECTION_INSTRUCTION[direction]);
 
-    char *gpioSysFile = systemPinFile(pin, GPIO_DIRECTION);
-
-    return systemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(systemPinFile(pin, GPIO_DIRECTION), bytes, buffer);
 }
 
 /*
@@ -79,15 +75,26 @@ int gpioExportAndDirection(const int pin, const int direction)
  */
 int gpioWrite(const int pin, const int value)
 {
-    if (isValidGPIOPin(pin) == false || isValidGPIOValue(value) == false)
+    if (gpioIsValidPin(pin) == false || isValidGPIOValue(value) == false)
         return EXIT_FAILURE;
 
     char buffer[2];
     int bytes = snprintf(buffer, 2, "%d", value);
 
-    char *gpioSysFile = systemPinFile(pin, GPIO_VALUE);
+    return systemFileWrite(systemPinFile(pin, GPIO_VALUE), bytes, buffer);
+}
 
-    return systemFileWrite(gpioSysFile, bytes, buffer);
+/*
+ * Reads GPIO pin and returns the digital value
+ *
+ * $ tail /sys/class/gpio/gpio17/value
+ */
+int gpioRead(const int pin, int *value)
+{
+    if (gpioIsValidPin(pin) == false)
+        return EXIT_FAILURE;
+
+    return systemFileRead(systemPinFile(pin, GPIO_VALUE), value);
 }
 
 /*
@@ -97,15 +104,13 @@ int gpioWrite(const int pin, const int value)
  */
 int gpioUnexport(const int pin)
 {
-    if (isValidGPIOPin(pin) == false)
+    if (gpioIsValidPin(pin) == false)
         return EXIT_FAILURE;
 
     char buffer[3];
     int bytes = snprintf(buffer, 3, "%d", pin);
 
-    char *gpioSysFile = systemFile(GPIO_UNEXPORT);
-
-    return systemFileWrite(gpioSysFile, bytes, buffer);
+    return systemFileWrite(systemFile(GPIO_UNEXPORT), bytes, buffer);
 }
 
 /*
@@ -125,6 +130,14 @@ void gpioVerbose(const bool verbose)
 }
 
 /*
+ * Validate the GPIO pin number
+ */
+bool gpioIsValidPin(const int pin)
+{
+    return (pin < GPIO_PIN_02 || pin > GPIO_PIN_27) ? false : true;
+}
+
+/*
  * Build the path and file name
  */
 static char* systemFile(const char *systemFile)
@@ -138,7 +151,7 @@ static char* systemFile(const char *systemFile)
 /*
  * Build the path (including pin directory) and file name
  */
-static char* systemPinFile(int pin, const char *systemFile)
+static char* systemPinFile(const int pin, const char *systemFile)
 {
     char systemDir[8];
     snprintf(systemDir, 8, GPIO_PIN_DIR, pin);
@@ -177,11 +190,32 @@ static int systemFileWrite(char *gpioSystemFile, const int bytes, char *buffer)
 }
 
 /*
- * Validate the GPIO pin number
+ * Reads a system file
  */
-static bool isValidGPIOPin(const int pin)
+static int systemFileRead(char *gpioSystemFile, int *value)
 {
-    return (pin < GPIO_PIN_02 || pin > GPIO_PIN_27) ? false : true;
+    if (GPIO_VERBOSE) printf("Reading %s\n", gpioSystemFile);
+
+    int fileDescriptor = open(gpioSystemFile, O_RDONLY);
+    if (fileDescriptor == -1)
+    {
+        if (GPIO_VERBOSE) printf("Error opening system file %s\n", gpioSystemFile);
+        return EXIT_FAILURE;
+    }
+
+    char buffer[] = "\0";
+    if (read(fileDescriptor, buffer, 1) == -1)
+    {
+        if (GPIO_VERBOSE) printf("Error reading system file %s\n", gpioSystemFile);
+        close(fileDescriptor);
+        return EXIT_FAILURE;
+    };
+
+    *value = atoi(buffer);
+
+    close(fileDescriptor);
+
+    return EXIT_SUCCESS;
 }
 
 /*

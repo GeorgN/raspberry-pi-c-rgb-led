@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "GPIO/pwm.h"
-#include "GPIO/gpio.h"
+#include "gpio/pwm.h"
+#include "gpio/gpio.h"
 
 #define GPIO_PIN_RED    GPIO_PIN_17
 #define GPIO_PIN_GREEN  GPIO_PIN_27

@@ -19,9 +19,11 @@ int gpioExport(const int pin);
 int gpioExportAndDirection(const int pin, const int direction);
 int gpioDirection(const int pin, const int direction);
 int gpioWrite(const int pin, const int value);
+int gpioRead(const int pin, int *value);
 int gpioUnexport(const int pin);
 void gpioTestMode(char *gpioSysClass);
 void gpioVerbose(const bool verbose);
+bool gpioIsValidPin(const int pin);
 
 static const int GPIO_PIN_02 = 2;
 static const int GPIO_PIN_03 = 3;

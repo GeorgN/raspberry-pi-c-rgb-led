@@ -18,6 +18,9 @@ void *pwmCycleGpioPin(void *parameters)
 {
     GPIO_PWM_PARAMETERS *pwmParameters = (GPIO_PWM_PARAMETERS *)parameters;
 
+    // Validate GPIO pin
+    assert(gpioIsValidPin(pwmParameters->gpioPin) == true);
+
     while(pwmParameters->terminate == false)
     {
         // Parameters can be changed outside of this thread, so need to re-calulate every iteration
@@ -65,6 +68,9 @@ static void pulseCycle(GPIO_PWM_PARAMETERS *pwmParameters)
  */
 static void pulseGpioPin(const int gpioPin, const int value, const int pulseLength)
 {
+    // Validate GPIO pin
+    assert(gpioIsValidPin(gpioPin) == true);
+
     int returnStatus = gpioWrite(gpioPin, value);
     assert(returnStatus == EXIT_SUCCESS);
     usleep(pulseLength);
