@@ -31,3 +31,5 @@ Fading Blue
 ```
 
 ## Circuit
+
+![circuit](https://github.com/mse240966/raspberry-pi-c-rgb-led/blob/master/docs/rgbLedCircuit.png "RGB Led Circuit")
