@@ -6,6 +6,12 @@ The code important to this little project is gpio/pwm.c, gpio/pwm.h and main.c. 
 
 ![rgbLed](https://github.com/mse240966/raspberry-pi-c-rgb-led/blob/master/docs/rgbLed.jpg "RGB Led")
 
+## How to clone (with GPIO sub module)
+
+```bash
+git clone --recursive https://github.com/mse240966/raspberry-pi-c-rgb-led.git
+```
+
 ## Example
 
 ```bash
