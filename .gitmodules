@@ -1,3 +1,0 @@
-[submodule "raspberry-pi-c-gpio"]
-	path = gpio
-	url = https://github.com/mse240966/raspberry-pi-c-gpio.git
