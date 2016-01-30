@@ -33,7 +33,10 @@ static const float GPIO_PWM_HUNDRED_PERCENT = 100.0f;
 static const int GPIO_PWM_DUTY_CYCLE_HIGH = 100;
 static const int GPIO_PWM_DUTY_CYCLE_LOW = 0;
 
-void *pwmCycleGpioPin(void *pwmParameters);
-void pwmPulseGpioPin(GPIO_PWM_PARAMETERS *pwmParameters);
+int gpioPwmStart(GPIO_PWM_PARAMETERS *pwmParameters);
+int gpioPwmStop(GPIO_PWM_PARAMETERS *pwmParameters);
+
+void *gpioPwmCyclePin(void *pwmParameters);
+void gpioPwmPulsePin(GPIO_PWM_PARAMETERS *pwmParameters);
 
 #endif // PWM_H_INCLUDED

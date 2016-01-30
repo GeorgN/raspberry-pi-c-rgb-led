@@ -24,6 +24,8 @@ typedef struct inp
 
 } GPIO_INPUT_PARAMETERS;
 
-void *inputPollGpioPin(void *inputParameters);
+int gpioInputStart(GPIO_INPUT_PARAMETERS *inputParameters);
+int gpioInputStop(GPIO_INPUT_PARAMETERS *inputParameters);
+void *gpioInputPollPin(void *inputParameters);
 
 #endif // INPUT_H_INCLUDED

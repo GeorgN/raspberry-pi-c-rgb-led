@@ -6,9 +6,26 @@
 #include "gpio.h"
 
 /*
+ * Start the input thread
+ */
+int gpioInputStart(GPIO_INPUT_PARAMETERS *inputParameters)
+{
+    return pthread_create(&inputParameters->threadId, NULL, &gpioInputPollPin, (void*)inputParameters);
+}
+
+/*
+ * Stop the input thread and wait for thread to terminate
+ */
+int gpioInputStop(GPIO_INPUT_PARAMETERS *inputParameters)
+{
+    inputParameters->terminate = true;
+    return pthread_join(inputParameters->threadId, NULL);
+}
+
+/*
  * Thread which polls the input pin then when the value changed calls the function pointer
  */
-void *inputPollGpioPin(void *parameters)
+void *gpioInputPollPin(void *parameters)
 {
     GPIO_INPUT_PARAMETERS *inputParameters = (GPIO_INPUT_PARAMETERS *)parameters;
 

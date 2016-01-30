@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <assert.h>
 
@@ -68,13 +67,13 @@ int main()
     };
 
     // Create a thread for each of the colour pins
-    returnStatus = pthread_create(&pwmParameters[RED].threadId, NULL, &pwmCycleGpioPin, (void*)&pwmParameters[RED]);
+    returnStatus = gpioPwmStart(&pwmParameters[RED]);
     assert(returnStatus == EXIT_SUCCESS);
 
-    returnStatus = pthread_create(&pwmParameters[GREEN].threadId, NULL, &pwmCycleGpioPin, (void*)&pwmParameters[GREEN]);
+    returnStatus = gpioPwmStart(&pwmParameters[GREEN]);
     assert(returnStatus == EXIT_SUCCESS);
 
-    returnStatus = pthread_create(&pwmParameters[BLUE].threadId, NULL, &pwmCycleGpioPin, (void*)&pwmParameters[BLUE]);
+    returnStatus = gpioPwmStart(&pwmParameters[BLUE]);
     assert(returnStatus == EXIT_SUCCESS);
 
     // Before applying voltage to Led wait for at least a single pass of each thread
@@ -88,18 +87,13 @@ int main()
     playWithLed(pwmParameters);
 
     // Terminate the pulse width modulation on each of the pins
-    pwmParameters[RED].terminate = true;
-    pwmParameters[GREEN].terminate = true;
-    pwmParameters[BLUE].terminate = true;
-
-    // Wait for the threads to terminate
-    returnStatus = pthread_join(pwmParameters[RED].threadId, NULL);
+    returnStatus = gpioPwmStop(&pwmParameters[RED]);
     assert(returnStatus == EXIT_SUCCESS);
 
-    returnStatus = pthread_join(pwmParameters[GREEN].threadId, NULL);
+    returnStatus = gpioPwmStop(&pwmParameters[GREEN]);
     assert(returnStatus == EXIT_SUCCESS);
 
-    returnStatus = pthread_join(pwmParameters[BLUE].threadId, NULL);
+    returnStatus = gpioPwmStop(&pwmParameters[BLUE]);
     assert(returnStatus == EXIT_SUCCESS);
 
     // Turn off RGB Led
@@ -193,14 +187,14 @@ void playWithLed(GPIO_PWM_PARAMETERS pwmParameters[])
     fadeSingleColourWithTwoOthers(&pwmParameters[GREEN],    3,  &pwmParameters[RED],    &pwmParameters[BLUE]);
     fadeSingleColourWithTwoOthers(&pwmParameters[BLUE],     3,  &pwmParameters[RED],    &pwmParameters[GREEN]);
 
-    fadeSingleColourWithAnother(&pwmParameters[RED],        3, &pwmParameters[GREEN]);
-    fadeSingleColourWithAnother(&pwmParameters[RED],        3, &pwmParameters[BLUE]);
+    fadeSingleColourWithAnother(&pwmParameters[RED],        3,  &pwmParameters[GREEN]);
+    fadeSingleColourWithAnother(&pwmParameters[RED],        3,  &pwmParameters[BLUE]);
 
-    fadeSingleColourWithAnother(&pwmParameters[GREEN],      3, &pwmParameters[RED]);
-    fadeSingleColourWithAnother(&pwmParameters[GREEN],      3, &pwmParameters[BLUE]);
+    fadeSingleColourWithAnother(&pwmParameters[GREEN],      3,  &pwmParameters[RED]);
+    fadeSingleColourWithAnother(&pwmParameters[GREEN],      3,  &pwmParameters[BLUE]);
 
-    fadeSingleColourWithAnother(&pwmParameters[BLUE],       3, &pwmParameters[RED]);
-    fadeSingleColourWithAnother(&pwmParameters[BLUE],       3, &pwmParameters[GREEN]);
+    fadeSingleColourWithAnother(&pwmParameters[BLUE],       3,  &pwmParameters[RED]);
+    fadeSingleColourWithAnother(&pwmParameters[BLUE],       3,  &pwmParameters[GREEN]);
 
     printf("Fading %s\n", singleColour(pwmParameters[RED].gpioPin));
     pwmParameters[RED].dutyCycle = GPIO_PWM_DUTY_CYCLE_LOW;
